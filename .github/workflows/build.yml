@@ -1,0 +1,36 @@
+name: Build Catur Jawa GB ROM
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # bisa dijalankan manual dari GitHub
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Download GBDK-2020
+        run: |
+          wget -q https://github.com/gbdk-2020/gbdk-2020/releases/download/4.3.0/gbdk-4.3.0-Linux-x86_64.tar.gz
+          tar -xzf gbdk-4.3.0-Linux-x86_64.tar.gz
+          echo "GBDK_HOME=$PWD/gbdk" >> $GITHUB_ENV
+
+      - name: Compile ROM
+        run: |
+          $GBDK_HOME/bin/lcc \
+            -Wa-l -Wl-m -Wl-j \
+            -DUSE_SFR_FOR_REG \
+            -ms -yt1 -yc \
+            -o catur_jawa.gb \
+            src/main.c
+
+      - name: Upload ROM sebagai Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: catur_jawa_rom
+          path: catur_jawa.gb
+          retention-days: 30
